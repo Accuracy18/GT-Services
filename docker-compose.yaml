@@ -1,0 +1,26 @@
+services:
+    random_box:
+        build: ./general_stuff/
+        image: server-box
+        container_name: server-box-container
+        tty: true
+        
+        volumes:
+            - ./general_stuff:/root/general_stuff
+
+        networks:
+            random_network:
+                ipv4_address: 192.168.30.2
+            
+        ports:
+            - 4006:4006
+            
+        working_dir: /root/general_stuff
+        entrypoint: ["twistd", "-ny", "http_stuff.py"]
+                
+networks:
+    random_network:
+        ipam:
+            #driver: bridge
+            config:
+                - subnet: 192.168.30.0/24
