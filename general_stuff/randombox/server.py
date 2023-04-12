@@ -1,19 +1,18 @@
-from twisted.internet import reactor
-
-from twisted.internet.protocol import ServerFactory, Protocol
-from twisted.internet.endpoints import serverFromString
-from twisted.application.service import Application
-from twisted.application.internet import TCPServer
+from general_stuff import *
+import json
 
 class randomServer(Protocol):
     def __init__(self, **kwargs):
         self.__dict__.update(**kwargs)
 
+    def connectionMade(self):
+        pass
+        
     def connectionLost(self, reason):
         print(reason)
         
     def dataReceived(self, data):
-        print(data)
+        data = json.dumps(data.decode().split('\n')[0])
 
 class randomFactory(ServerFactory):
     proto = randomServer
@@ -24,7 +23,4 @@ class randomFactory(ServerFactory):
 endpoint = serverFromString(reactor, "tcp:4005")
 protocol=Protocol()
 
-application = Application("Something")
-service = TCPServer(4005, randomFactory())
-
-service.setServiceParent(application)
+random_service = TCPServer(4005, randomFactory())

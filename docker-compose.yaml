@@ -1,26 +1,120 @@
 services:
+    zuzubox:
+        image: gtdonny18/zuzubox
+        container_name: zuzubox_container
+        tty: true
+        
+        depends_on:
+            - bunch_of_shit
+        
+        ports:
+            - 4007:4007
+            
+        networks:
+            random_network:
+                ipv4_address: 192.168.30.2
+                
+        links:
+            - bunch_of_shit
+                    
+        environment:
+            - POSTGRES_ROOT_PASSWORD=jojojojolossondojo
+            - POSTGRES_HOST=gtdonnysql
+            - POSTGRES_PASSWORD=something
+            - POSTGRES_DATABASE=test
+            - PGDATA=/var/lib/postgresql/data
+                
     random_box:
         build: ./general_stuff/
         image: server-box
         container_name: server-box-container
-        tty: true
-        
+
+        depends_on:
+            - zuzubox
+            
         volumes:
             - ./general_stuff:/root/general_stuff
 
         networks:
             random_network:
-                ipv4_address: 192.168.30.2
+                ipv4_address: 192.168.30.3
             
         ports:
             - 4006:4006
             
         working_dir: /root/general_stuff
-        entrypoint: ["twistd", "-ny", "http_stuff.py"]
+        entrypoint: ["twistd", "-ny", "__init__.py"]
+
+    bunch_of_shit:
+        image: postgres
+        container_name: bunch_of_shit_container
+
+        ports:
+            - 4008:5432
+
+        environment:
+            - POSTGRES_ROOT_PASSWORD=jojojojolossondojo
+            - POSTGRES_HOST=gtdonnysql
+            - POSTGRES_PASSWORD=something
+            - POSTGRES_DATABASE=test
+            - PGDATA=/var/lib/postgresql/data
+
+        networks:
+            cloud_network:
+                ipv4_address: 192.168.20.4
+            random_network:
+                ipv4_address: 192.168.30.4
+
+    portainer:
+        image: portainer/portainer-ce
+        container_name: portainer_container
+        restart: always
+        
+        ports:
+            - 4000:8000
+            - 4001:9443
+
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+
+        networks:
+            cloud_network:
+                ipv4_address: 192.168.20.2
+
+    nextclout:
+        image: nextcloud
+        container_name: nextcloud_container
+        restart: always
+
+        ports:
+            - 4002:80
+
+        networks:
+            cloud_network:
+                ipv4_address: 192.168.20.3
+
+        links:
+            - bunch_of_shit
+            
+        environment:
+            - POSTGRES_ROOT_PASSWORD=jojojojolossondojo
+            - POSTGRES_HOST=gtdonnysql
+            - POSTGRES_PASSWORD=something
+            - POSTGRES_DATABASE=test
+            - PGDATA=/var/lib/postgresql/data
+
                 
 networks:
     random_network:
+        name: random_net
         ipam:
-            #driver: bridge
+            driver: default
             config:
                 - subnet: 192.168.30.0/24
+
+    cloud_network:
+            name: cloud_shit
+            ipam:
+                driver: default
+                config:
+                    - subnet: 192.168.20.0/24
